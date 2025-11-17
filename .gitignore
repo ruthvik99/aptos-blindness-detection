@@ -1,0 +1,19 @@
+# Ignore datasets
+data/
+outputs/
+models/
+
+# Ignore conda / virtual envs
+venv/
+aptos-env/
+*.pth
+*.pt
+
+# Ignore downloaded installers
+Miniconda3-latest-Linux-x86_64.sh
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# System stuff
+.DS_Store
