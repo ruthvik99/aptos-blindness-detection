@@ -161,9 +161,6 @@ DenseNet-121 performs best overall.
 ---
 
 
-
----
-
 ## 7. Repository Structure
 aptos-blindness-detection/
 │
