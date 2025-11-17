@@ -6,8 +6,8 @@ outputs/
 # Ignore conda / virtual envs
 venv/
 aptos-env/
-*.pth
-*.pt
+
+
 
 # Ignore downloaded installers
 Miniconda3-latest-Linux-x86_64.sh
