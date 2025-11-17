@@ -1,7 +1,7 @@
 # Ignore datasets
 data/
 outputs/
-models/
+
 
 # Ignore conda / virtual envs
 venv/
