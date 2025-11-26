@@ -3,7 +3,7 @@
 
 # # DenseNet-121 Inference + Grad-CAM 
 
-# In[6]:
+# In[1]:
 
 
 import os
@@ -24,7 +24,7 @@ import seaborn as sns
 
 # ## Setup
 
-# In[7]:
+# In[2]:
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -85,7 +85,7 @@ print("Loaded val_loader:", len(val_loader))
 
 # ## Load Trained DenseNet-121 Checkpoint
 
-# In[13]:
+# In[3]:
 
 
 from torchvision.models import densenet121
@@ -97,7 +97,7 @@ model.classifier = nn.Linear(model.classifier.in_features, 5)
 model = model.to(device)
 model.eval()
 
-# In[15]:
+# In[4]:
 
 
 checkpoint_path = "../models/best_densenet121_320.pth"
@@ -114,15 +114,27 @@ print("DenseNet-121 checkpoint loaded successfully!")
 
 # ## Run Inference
 
-# In[ ]:
+# In[5]:
 
 
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score,
+    f1_score, balanced_accuracy_score, confusion_matrix, classification_report
+)
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from tqdm import tqdm
+
+# ------------------------------
+# Run Inference
+# ------------------------------
+model.eval()
 y_true, y_pred = [], []
 
 with torch.no_grad():
     for imgs, labels in tqdm(val_loader, desc="Running Inference"):
-        imgs = imgs.to(device)
-        labels = labels.to(device)
+        imgs, labels = imgs.to(device), labels.to(device)
 
         outputs = model(imgs)
         preds = outputs.argmax(dim=1)
@@ -130,19 +142,43 @@ with torch.no_grad():
         y_true.extend(labels.cpu().numpy())
         y_pred.extend(preds.cpu().numpy())
 
+# Convert to numpy arrays
 y_true = np.array(y_true)
 y_pred = np.array(y_pred)
 
-print("\nClassification Report:\n")
+# ------------------------------
+# Metrics
+# ------------------------------
+acc  = accuracy_score(y_true, y_pred)
+prec = precision_score(y_true, y_pred, average='macro')
+rec  = recall_score(y_true, y_pred, average='macro')
+f1   = f1_score(y_true, y_pred, average='macro')
+bacc = balanced_accuracy_score(y_true, y_pred)
+
+print("===== DenseNet-121 Metrics =====")
+print(f"Accuracy:            {acc:.4f}")
+print(f"Precision (macro):   {prec:.4f}")
+print(f"Recall (macro):      {rec:.4f}")
+print(f"F1-score (macro):    {f1:.4f}")
+print(f"Balanced Accuracy:   {bacc:.4f}")
+print("=====================================\n")
+
+# Full Classification Report
+print("Classification Report:\n")
 print(classification_report(y_true, y_pred, digits=4))
 
+# ------------------------------
+# Confusion Matrix
+# ------------------------------
 cm = confusion_matrix(y_true, y_pred)
-plt.figure(figsize=(8, 6))
+
+plt.figure(figsize=(8,6))
 sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
-            xticklabels=[0,1,2,3,4], yticklabels=[0,1,2,3,4])
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
-plt.title("DenseNet121 — Confusion Matrix")
+            xticklabels=[0,1,2,3,4],
+            yticklabels=[0,1,2,3,4])
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("DenseNet-121 — Confusion Matrix")
 plt.show()
 
 # ## Grad-CAM Implementation

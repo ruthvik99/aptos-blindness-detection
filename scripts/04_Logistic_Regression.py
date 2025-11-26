@@ -5,7 +5,7 @@
 
 # ## Imports
 
-# In[1]:
+# In[2]:
 
 
 import os
@@ -25,7 +25,7 @@ sns.set(style="whitegrid")
 
 # ## Load Dataset
 
-# In[2]:
+# In[3]:
 
 
 train_df = pd.read_csv("../data/raw/train.csv")
@@ -37,7 +37,7 @@ train_df.head()
 
 # ### Brightness
 
-# In[3]:
+# In[4]:
 
 
 def calc_brightness(img):
@@ -46,7 +46,7 @@ def calc_brightness(img):
 
 # ### Blurriness (Laplacian Variance)
 
-# In[4]:
+# In[5]:
 
 
 def calc_blurriness(img):
@@ -55,7 +55,7 @@ def calc_blurriness(img):
 
 # ### Color Stats (Mean + Std for R,G,B)
 
-# In[5]:
+# In[6]:
 
 
 def color_stats(img):
@@ -65,7 +65,7 @@ def color_stats(img):
 
 # ### Entropy (Texture complexity)
 
-# In[6]:
+# In[7]:
 
 
 def calc_entropy(img):
@@ -77,7 +77,7 @@ def calc_entropy(img):
 
 # ## Extract Features for all Images
 
-# In[7]:
+# In[8]:
 
 
 features = []
@@ -109,7 +109,7 @@ print("Feature matrix shape:", features.shape)
 
 # ## Train–Validation Split
 
-# In[8]:
+# In[10]:
 
 
 X_train, X_val, y_train, y_val = train_test_split(
@@ -120,7 +120,7 @@ X_train.shape, X_val.shape
 
 # ## Scale Features
 
-# In[10]:
+# In[11]:
 
 
 from sklearn.preprocessing import StandardScaler
@@ -131,7 +131,7 @@ X_val_scaled   = scaler.transform(X_val)
 
 # ## Train Logistic Regression Model
 
-# In[ ]:
+# In[14]:
 
 
 model = LogisticRegression(
@@ -141,20 +141,52 @@ model = LogisticRegression(
 )
 
 model.fit(X_train_scaled, y_train)
+y_pred = model.predict(X_val_scaled)
 
 # ## Evaluation
 
-# In[12]:
+# In[15]:
 
 
-y_pred = model.predict(X_val_scaled)
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    balanced_accuracy_score,
+)
+
+# ------------------------------------
+# Compute Metrics
+# ------------------------------------
+acc = accuracy_score(y_val, y_pred)
+prec = precision_score(y_val, y_pred, average="macro", zero_division=0)
+rec = recall_score(y_val, y_pred, average="macro", zero_division=0)
+f1 = f1_score(y_val, y_pred, average="macro", zero_division=0)
+bal_acc = balanced_accuracy_score(y_val, y_pred)
+
+# ------------------------------------
+# Print Metrics
+# ------------------------------------
+print("===== Logistic Regression Metrics =====")
+print(f"Accuracy:            {acc:.4f}")
+print(f"Precision (macro):   {prec:.4f}")
+print(f"Recall (macro):      {rec:.4f}")
+print(f"F1-score (macro):    {f1:.4f}")
+print(f"Balanced Accuracy:   {bal_acc:.4f}")
+print("=======================================")
+
+# In[ ]:
+
+
+
 
 print("Accuracy:", accuracy_score(y_val, y_pred))
 print(classification_report(y_val, y_pred, digits=4))
 
 # ### Confusion Matrix
 
-# In[14]:
+# In[16]:
 
 
 cm = confusion_matrix(y_val, y_pred)
@@ -170,7 +202,27 @@ plt.show()
 
 # ### Feature Importance Plot
 
-# In[15]:
+# In[17]:
+
+
+from sklearn.metrics import confusion_matrix
+
+cm = confusion_matrix(y_val, y_pred)
+
+plt.figure(figsize=(7,5))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=[0,1,2,3,4],
+            yticklabels=[0,1,2,3,4])
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("Confusion Matrix – Logistic Regression")
+plt.show()
+
+print("Diagonal sum:", np.trace(cm))
+print("Total:", cm.sum())
+print("Acc from CM:", np.trace(cm)/cm.sum())
+
+# In[18]:
 
 
 coef = model.coef_  # shape: (5 classes, n_features)
@@ -188,22 +240,3 @@ sns.heatmap(coef, annot=True, cmap="coolwarm",
             yticklabels=[f"Class {i}" for i in range(5)])
 plt.title("Logistic Regression Coefficients (Feature Importance)")
 plt.show()
-
-# In[16]:
-
-
-import pandas as pd
-from sklearn.model_selection import train_test_split
-
-train_df_raw = pd.read_csv("../data/raw/train.csv")
-
-train_df, val_df = train_test_split(
-    train_df_raw,
-    test_size=0.20,
-    stratify=train_df_raw["diagnosis"],
-    random_state=42
-)
-
-print("Total images:", len(train_df_raw))
-print("Training images:", len(train_df))
-print("Validation images:", len(val_df))

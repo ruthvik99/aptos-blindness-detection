@@ -3,7 +3,7 @@
 
 # # Null Model Baseline
 
-# In[1]:
+# In[13]:
 
 
 import pandas as pd
@@ -12,11 +12,9 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# 
-
 # # Load dataset
 
-# In[2]:
+# In[14]:
 
 
 df = pd.read_csv("../data/raw/train.csv")
@@ -24,7 +22,7 @@ df.head()
 
 # ## Class distribution
 
-# In[3]:
+# In[15]:
 
 
 class_counts = df['diagnosis'].value_counts()
@@ -32,7 +30,7 @@ print("Class Distribution:\n", class_counts)
 
 # ## Identify majority class
 
-# In[4]:
+# In[16]:
 
 
 majority_class = class_counts.idxmax()
@@ -40,7 +38,7 @@ print(f"\nMajority Class = {majority_class}")
 
 # ## Split data
 
-# In[5]:
+# In[17]:
 
 
 from sklearn.model_selection import train_test_split
@@ -53,15 +51,44 @@ y_pred = np.full_like(y_true, fill_value=majority_class)
 
 # ## Metrics
 
-# In[6]:
+# In[22]:
 
 
-print("\nAccuracy:", accuracy_score(y_true, y_pred))
-print("\nClassification Report:\n", classification_report(y_true, y_pred))
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    balanced_accuracy_score,
+)
+import numpy as np
+
+
+
+# ------------------------------------
+# Compute Metrics
+# ------------------------------------
+acc = accuracy_score(y_true, y_pred)
+prec = precision_score(y_true, y_pred, average="macro", zero_division=0)
+rec = recall_score(y_true, y_pred, average="macro", zero_division=0)
+f1 = f1_score(y_true, y_pred, average="macro", zero_division=0)
+bal_acc = balanced_accuracy_score(y_true, y_pred)
+grp_acc = compute_grouped_accuracy(y_true, y_pred)
+
+# ------------------------------------
+# Print Metrics
+# ------------------------------------
+print("===== Null Model Metrics =====")
+print(f"Accuracy:                   {acc:.4f}")
+print(f"Precision (macro):          {prec:.4f}")
+print(f"Recall (macro):             {rec:.4f}")
+print(f"F1-score (macro):           {f1:.4f}")
+print(f"Balanced Accuracy:          {bal_acc:.4f}")
+print("================================")
 
 # ## Confusion matrix
 
-# In[7]:
+# In[9]:
 
 
 cm = confusion_matrix(y_true, y_pred)

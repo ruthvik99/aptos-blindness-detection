@@ -205,6 +205,73 @@ with torch.no_grad():
 
 print(classification_report(y_true, y_pred))
 
+# In[10]:
+
+
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score,
+    f1_score, balanced_accuracy_score, confusion_matrix, classification_report
+)
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from tqdm import tqdm
+
+# ------------------------------
+# Run Inference
+# ------------------------------
+model.eval()
+y_true, y_pred = [], []
+
+with torch.no_grad():
+    for imgs, labels in tqdm(val_loader, desc="Running Inference"):
+        imgs, labels = imgs.to(device), labels.to(device)
+
+        outputs = model(imgs)
+        preds = outputs.argmax(dim=1)
+
+        y_true.extend(labels.cpu().numpy())
+        y_pred.extend(preds.cpu().numpy())
+
+# Convert to numpy arrays
+y_true = np.array(y_true)
+y_pred = np.array(y_pred)
+
+# ------------------------------
+# Metrics
+# ------------------------------
+acc  = accuracy_score(y_true, y_pred)
+prec = precision_score(y_true, y_pred, average='macro')
+rec  = recall_score(y_true, y_pred, average='macro')
+f1   = f1_score(y_true, y_pred, average='macro')
+bacc = balanced_accuracy_score(y_true, y_pred)
+
+print("===== Simple CNN Metrics =====")
+print(f"Accuracy:            {acc:.4f}")
+print(f"Precision (macro):   {prec:.4f}")
+print(f"Recall  (macro):     {rec:.4f}")
+print(f"F1-score (macro):    {f1:.4f}")
+print(f"Balanced Accuracy:   {bacc:.4f}")
+print("=====================================\n")
+
+# Full Classification Report
+print("Classification Report:\n")
+print(classification_report(y_true, y_pred, digits=4))
+
+# ------------------------------
+# Confusion Matrix
+# ------------------------------
+cm = confusion_matrix(y_true, y_pred)
+
+plt.figure(figsize=(8,6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=[0,1,2,3,4],
+            yticklabels=[0,1,2,3,4])
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Simple CNN — Confusion Matrix")
+plt.show()
+
 # ## Confusion Matrix
 
 # In[11]:
